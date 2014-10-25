@@ -1,0 +1,10 @@
+[package]
+
+name = "audio_metadata"
+version = "0.0.1"
+authors = ["Jason Thompson <jason@jthompson.ca>"]
+[lib]
+name = "audio_metadata"
+
+[[bin]]
+name = "audio-metadata"
