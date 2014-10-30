@@ -37,7 +37,7 @@ pub struct FrameHeader {
     ///
 
     pub id: String,
-    pub size: u32,
+    pub size: uint,
     pub flags: Flags
 }
 
@@ -105,5 +105,10 @@ mod test {
     fn test_frame_size(){
         let flag_vec = vec![0x54, 0x49, 0x54, 0x32, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x00];
         assert_eq!(10, super::FrameHeader::new(flag_vec).size);
+    }
+
+    #[test]
+    fn frame_initializes_with_header_vec(){
+//        let header_vec = vec![
     }
 }

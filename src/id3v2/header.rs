@@ -2,10 +2,10 @@ use std::fmt;
 use util;
 
 pub struct Header {
-    major_version: u8,
-    revision_number: u8,
-    flags: HeaderFlags,
-    pub tag_size: u32
+    pub major_version: u8,
+    pub revision_number: u8,
+    pub flags: HeaderFlags,
+    pub tag_length: uint
 }
 
 impl Header {
@@ -13,15 +13,15 @@ impl Header {
         Header { major_version: header[3], 
                  revision_number: header[4], 
                  flags: HeaderFlags::new(header[5]),
-                 tag_size: util::calculate_size(header.slice(6, 10)),
+                 tag_length: util::calculate_size(header.slice(6, 10)),
         }
     }
 }
 
 impl fmt::Show for Header {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Version: ID3v2.{}.{}\n{}\nTag Size: {}",
-               self.major_version, self.revision_number, self.flags, self.tag_size)
+        write!(f, "Version: ID3v2.{}.{}\n{}\nTag Length: {}",
+               self.major_version, self.revision_number, self.flags, self.tag_length)
     }
 }
 
@@ -51,7 +51,6 @@ pub struct HeaderFlags {
 impl HeaderFlags {
     fn new(flags_byte: u8) -> HeaderFlags {
         HeaderFlags {
-
             unsynchronization: (flags_byte & 0x80) != 0,
             extended_header: (flags_byte & 0x40) != 0,
             experimental: (flags_byte & 0x20) != 0
@@ -65,3 +64,15 @@ impl fmt::Show for HeaderFlags {
                self.unsynchronization, self.extended_header, self.experimental)
     }
 }
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn test_header_initialization() {
+        let header_vec = vec![0x49, 0x44, 0x33, 0x03, 0x00, 0x00, 0x00, 0x00, 0x08, 0x09];
+        let header = super::Header::new(&header_vec);
+        assert_eq!(header.major_version, 3);
+        assert_eq!(header.tag_length, 1033);
+    }
+}
+
