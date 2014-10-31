@@ -2,31 +2,43 @@ use std::io::{BufferedReader, File};
 use id3v2::header;
 use id3v2::frame;
 
-struct Parser {
-    pub current_position: uint,
+struct Parser<'a> {
+    pub current_position: &'a mut uint,
     pub length_of_data: uint
 }
 
-impl Parser {
-    fn new(current_position: uint, length_of_data: uint) -> Parser {
-        Parser {
-            current_position: current_position,
-            length_of_data: length_of_data
+impl<'a> Parser<'a> {
+    pub fn new<'a>() -> Parser<'a> {
+        return Parser {
+            current_position: &mut 0u,
+            length_of_data: 0
         }
     }
+    
+    pub fn parse(&mut self, path: &Path) -> SongMetadata {
+        let mut reader = BufferedReader::new(File::open(path));
+
+        // parse header
+        let mut header_vec = reader.read_exact(10);
+        let header = header::Header::new(&header_vec.unwrap());
+        let mut song = SongMetadata::new(header);
+
+
+        // iterate through frames
+        while self.current_position.to_uint().unwrap() <= self.length_of_data {
+            // read frame header
+            let frame_header_vec = reader.read_exact(10).unwrap();
+            let frame_header = frame::FrameHeader::new(frame_header_vec);
+            let header_size = frame_header.size.clone();
+            let frame_contents_vec = reader.read_exact(frame_header.size).unwrap();
+
+            let frame = frame::Frame::new(frame_header, frame_contents_vec);
+            song.frames.push(frame);
+            self.current_position = &mut (header_size + 10);
+        }
+        song
+    }
 }
-
-
-pub fn parse(mut reader: BufferedReader<File>) -> SongMetadata {
-    let mut header_vec = reader.read_exact(10);
-    let header = header::Header::new(&header_vec.unwrap());
-    let song = SongMetadata::new(header);
-
-    let mut parser = Parser::new(10, header.tag_length);
-
-    song
-}
-
 
 pub struct SongMetadata {
     header: header::Header,
@@ -50,9 +62,9 @@ mod test {
     #[test]
     fn test_parser_initialization() {
         let path = Path::new("/home/jason/dev/audio-metadata/sample-data/discotrax.mp3");
-        let mut reader = BufferedReader::new(File::open(&path).unwrap());
-
-        let song_data = super::parse(reader);
+        let mut parser = super::Parser::new;
+        let song_data = parser.parse(&path);
+        
         assert_eq!(song_data.header.tag_length, 1033);
     }
 }
