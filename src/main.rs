@@ -7,12 +7,17 @@ use std::ascii::AsciiStr;
 
 use audio_metadata::id3v2::header;
 use audio_metadata::id3v2::frame;
+use audio_metadata::id3v2::parser;
 
 fn is_id3v2(header_info: &Vec<u8>) -> bool {
     header_info[0] as char == 'I' && header_info[1] as char == 'D' && header_info[2] as char == '3'
 }
 
 fn main(){
+    let path = Path::new("/home/jason/dev/audio-metadata/sample-data/discotrax.mp3");
+    let mut parser = parser::Parser::new();
+    let song_data = parser.parse(&path);
+
 }
 
 #[cfg(test)]

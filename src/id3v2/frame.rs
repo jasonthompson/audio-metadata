@@ -4,15 +4,19 @@ use std::fmt;
 use util;
 
 pub struct Frame {
-    header: FrameHeader,
-    contents: String
+    pub header: FrameHeader,
+    pub contents: String
 }
 
 impl Frame {
     pub fn new(header: FrameHeader, contents_bytes: Vec<u8>) -> Frame {
+        let mut contents_string = String::from_utf8(contents_bytes).unwrap();
+        // remove null byte at beginning of contents_string
+        let trimmed_contents = contents_string.remove(0);
+        
         Frame {
             header: header,
-            contents: String::from_utf8(contents_bytes).unwrap()
+            contents: contents_string
         }
     }
 }
@@ -105,10 +109,5 @@ mod test {
     fn test_frame_size(){
         let flag_vec = vec![0x54, 0x49, 0x54, 0x32, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x00];
         assert_eq!(10, super::FrameHeader::new(flag_vec).size);
-    }
-
-    #[test]
-    fn frame_initializes_with_header_vec(){
-//        let header_vec = vec![
     }
 }
