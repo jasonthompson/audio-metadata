@@ -1,3 +1,5 @@
 /target
 /Cargo.lock
 /sample-data
+TAGS
+/src/bin

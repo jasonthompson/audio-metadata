@@ -1,4 +1,3 @@
-use std::string;
 use std::fmt;
 
 use util;
@@ -12,7 +11,7 @@ impl Frame {
     pub fn new(header: FrameHeader, contents_bytes: Vec<u8>) -> Frame {
         let mut contents_string = String::from_utf8(contents_bytes).unwrap();
         // remove null byte at beginning of contents_string
-        let trimmed_contents = contents_string.remove(0);
+        contents_string.remove(0);
         
         Frame {
             header: header,

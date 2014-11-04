@@ -19,7 +19,7 @@ impl Parser {
         let mut reader = BufferedReader::new(File::open(path));
 
         // parse header
-        let mut header_vec = reader.read_exact(10);
+        let header_vec = reader.read_exact(10);
         let header = header::Header::new(&header_vec.unwrap());
         let mut song = SongMetadata::new(header);
 
@@ -33,7 +33,8 @@ impl Parser {
             let frame_contents_vec = reader.read_exact(frame_header.size).unwrap();
 
             let frame = frame::Frame::new(frame_header, frame_contents_vec);
-            song.frames.push(frame);
+            &song.frames.push(frame);
+
             self.current_position = header_size + 10;
         }
         song
@@ -41,32 +42,15 @@ impl Parser {
 }
 
 pub struct SongMetadata {
-    header: header::Header,
-    frames: Vec<frame::Frame>
+    pub header: header::Header,
+    pub frames: Vec<frame::Frame>
 }
 
 impl SongMetadata {
     pub fn new(header: header::Header) -> SongMetadata {
         SongMetadata {
             header: header,
-            frames: vec![],
+            frames: Vec::new()
         }
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use std::io::{BufferedReader, File};
-    use id3v2::header;
-
-    // This is more of an exceptance test. Should probably be moved to "tests" folder.
-    #[test]
-    fn test_parser_initialization() {
-        let path = Path::new("/home/jason/dev/audio-metadata/sample-data/discotrax.mp3");
-        let mut parser = super::Parser::new();
-        let song_data = parser.parse(&path);
-        
-        assert_eq!(song_data.header.tag_length, 1033);
-        assert_eq!(song_data.frames[0].contents, "Discotraxx".to_string());
     }
 }
