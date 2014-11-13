@@ -2,29 +2,45 @@ use std::fmt;
 
 use util;
 
+pub enum FrameType {
+    Text,
+    Other,
+}
+
 pub struct Frame {
+    pub kind: FrameType, 
     pub header: FrameHeader,
     pub contents: String
 }
 
 impl Frame {
     pub fn new(header: FrameHeader, contents_bytes: Vec<u8>) -> Frame {
-        let mut contents_string = String::from_utf8(contents_bytes).unwrap();
-        // remove null byte at beginning of contents_string
-        contents_string.remove(0);
-        
-        Frame {
-            header: header,
-            contents: contents_string
+        if header.id.chars().nth(0).unwrap() == 'T' {
+            Frame {
+                kind: FrameType::Text,
+                header: header,
+                contents: String::from_utf8(contents_bytes).unwrap(),
+                }
+        } else {
+            Frame {
+                kind: FrameType::Other,
+                header: header,
+                contents: String::new(),
+                }
         }
+        
     }
 }
 
 impl fmt::Show for Frame {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}: {} \n", self.header.id, self.contents)
+        match self.kind {
+            FrameType::Text => write!(f, "{}: {} \n", self.header, self.contents),
+            FrameType::Other => write!(f, "{}", self.header.id),
+        }
     }
 }
+
 
 pub struct FrameHeader {
     /// ID3v2 frame overview
@@ -46,8 +62,9 @@ pub struct FrameHeader {
 
 impl FrameHeader {
     pub fn new(header_bytes: Vec<u8>) -> FrameHeader {
+        // id becomes Result<Err>
         FrameHeader {
-            id: String::from_utf8(header_bytes.slice(0,4).to_vec()).unwrap(),
+            id: id,
             size: util::calculate_size(header_bytes.slice(4,8)),
             flags: Flags::new(header_bytes.slice(8,10).to_vec())
         }
