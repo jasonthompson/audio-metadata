@@ -1,4 +1,5 @@
 use std::fmt;
+use std::str;
 
 use util;
 
@@ -55,18 +56,23 @@ pub struct FrameHeader {
     ///   Flags      $xx xx
     ///
 
-    pub id: String,
+    pub id: &'static str,
     pub size: uint,
     pub flags: Flags
 }
 
 impl FrameHeader {
-    pub fn new(header_bytes: Vec<u8>) -> FrameHeader {
-        // id becomes Result<Err>
-        FrameHeader {
-            id: id,
-            size: util::calculate_size(header_bytes.slice(4,8)),
-            flags: Flags::new(header_bytes.slice(8,10).to_vec())
+    pub fn new(header_bytes: [u8,..10]) -> Option<FrameHeader> {
+        if header_bytes[0] == 0x0 {
+            None
+        } else {
+            let id = header_bytes.slice(0,4);
+            
+            Some(FrameHeader {
+                id: str::from_utf8(id).unwrap(),
+                size: util::calculate_size(header_bytes.slice(4,8)),
+                flags: Flags::new(header_bytes.slice(8,10).to_vec())
+            })
         }
     }
 }
@@ -117,13 +123,15 @@ impl fmt::Show for Flags {
 mod test {
     #[test]
     fn test_frame_id(){
-        let flag_vec = vec![0x54, 0x49, 0x54, 0x32, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x00];
-        assert_eq!("TIT2".to_string(), super::FrameHeader::new(flag_vec).id);
+        let flags: [u8,..10] = [0x54, 0x49, 0x54, 0x32, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x00];
+        let frame_header = super::FrameHeader::new(flags).unwrap();
+
+        assert_eq!("TIT2".as_slice(), frame_header.id);
     }
 
     #[test]
     fn test_frame_size(){
-        let flag_vec = vec![0x54, 0x49, 0x54, 0x32, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x00];
-        assert_eq!(10, super::FrameHeader::new(flag_vec).size);
+        let flags: [u8,..10] = [0x54, 0x49, 0x54, 0x32, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x00];
+        assert_eq!(10, super::FrameHeader::new(flags).unwrap().size);
     }
 }

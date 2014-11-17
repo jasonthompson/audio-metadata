@@ -15,7 +15,7 @@ impl Parser {
 
     fn next_frame(&mut self) -> Result<frame::Frame, IoError> {
         let frame_header_vec = try!(self.reader.read_exact(10));
-        let frame_header = frame::FrameHeader::new(frame_header_vec);
+        let frame_header = frame::FrameHeader::new(frame_header_vec).unwrap();
         let frame_header_size = frame_header.size;
         let frame_contents_vec = try!(self.reader.read_exact(frame_header_size));
 
